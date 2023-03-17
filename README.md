@@ -1,4 +1,5 @@
-# Basic Nivo App Built with Parcel
+# Basic [Nivo](https://nivo.rocks/) App Built with [Parcel](https://parceljs.org/)
+
 
 install dependencies 
 
