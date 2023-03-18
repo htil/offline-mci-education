@@ -1,4 +1,4 @@
-# Basic [Nivo](https://nivo.rocks/) App Built with [Parcel](https://parceljs.org/)
+# Software for MCI-Education (Post-processing)
 
 
 install dependencies 
