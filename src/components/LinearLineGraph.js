@@ -1,6 +1,8 @@
 import React from 'react'
 import { Line } from '@nivo/line'
 import _ from 'lodash'
+import { stopSpinner } from './Spinner';
+
 
 export default class LinearLineGraph extends React.Component {
     render(){
@@ -41,6 +43,14 @@ export default class LinearLineGraph extends React.Component {
                 legend: 'samples',
                 legendOffset: -12,
             }}
+            layers={[
+                "grid",
+                "axes",
+                "lines",
+                () => {
+                    console.log("done drawing")
+                }
+            ]}
         />
         )
     }

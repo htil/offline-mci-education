@@ -6,11 +6,14 @@ import LinearLineGraph from './components/LinearLineGraph';
 import { tsv } from 'd3';
 import _data from "./data/emg1.csv";
 import _ from 'lodash';
+import { startSpinner } from './components/Spinner';
+import fili from "./js/fili.esm.js";
+
 
 let root = null;
 
 let sampleFreq = 512;
-let secondsMax = 10
+let secondsMax = 120
 let X_MAX = sampleFreq * secondsMax
 let selectedDataY = []
 let selectedDataX = []
@@ -28,9 +31,9 @@ testData =  [
     { x: 9, y: 12 },
 ]
 
-
 let updateGraphComponent = async function(yVals, xMax) {
     nivoData = []
+    startSpinner()
     await _.forEach(yVals, (value, index) => {
         if (index < xMax){
             x = selectedDataX[index]
@@ -51,11 +54,31 @@ let plotRawData = async function (df) {
 let removeMean = async function(df, updateGraph = false) {
     console.log("removeMean")
     let df_remove_mean =  df.sub(df.mean())
-    df_remove_mean.print()
+    //df_remove_mean.print()
     if (updateGraph) {
         await updateGraphComponent(df_remove_mean.values, X_MAX)
     }
     return df_remove_mean
+}
+
+let filterSignal = async function(y, cutoff, updateGraph = false){
+    const firCalculator = new fili.FirCoeffs();
+    var firFilterCoeffs = firCalculator.lowpass({
+        order: 100, // filter order
+        Fs: sampleFreq, // sampling frequency
+        Fc: cutoff, // cutoff frequency
+        // forbandpass and bandstop F1 and F2 must be provided instead of Fc
+    });
+    
+    const filter = new fili.FirFilter(firFilterCoeffs);
+    
+    signalFiltered = filter.simulate(y)
+    console.log(signalFiltered)
+    if(updateGraph){
+        await updateGraphComponent(signalFiltered, X_MAX)
+    }
+
+    return signalFiltered
 }
 
 
@@ -97,6 +120,11 @@ let handleEvents = function () {
     createEventListener("d1", () => {plotRawData(df_y, true)});
     createEventListener("d2", () => {removeMean(df_y, true)});
     createEventListener("d3", () => {getAbsValue(df_y, true)});
+    createEventListener("d4", async () => {
+        let _y = await getAbsValue(df_y)
+        //console.log(_y.values)
+        filterSignal(_y.values, 3, true)
+    });
 };
 
 // Fix for getBBox error https://github.com/plouc/nivo/issues/2162#issuecomment-1467184517
