@@ -7,12 +7,11 @@ import { stopSpinner } from './Spinner';
 export default class LinearLineGraph extends React.Component {
     render(){
         const commonProperties = {
-            width: 900,
-            height: 400,
+            width: window.innerWidth * 0.55,
+            height: window.innerHeight * 0.75,
             margin: { top: 20, right: 20, bottom: 60, left: 80 },
             animate: true,
             enableSlices: 'x',
-          
         }
 
         return(
@@ -40,7 +39,7 @@ export default class LinearLineGraph extends React.Component {
                 legendOffset: 12,
             }}
             axisBottom={{
-                legend: 'samples',
+                legend: 'seconds',
                 legendOffset: -12,
             }}
             layers={[

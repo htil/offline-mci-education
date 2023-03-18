@@ -1,13 +1,13 @@
 import { createRoot } from 'react-dom/client'
-import json_data from './data/data'
-import json_data2 from './data/data2'
-import LineGraph from './components/LineGraph';
-import LinearLineGraph from './components/LinearLineGraph';
+import json_data from '../data/data'
+import json_data2 from '../data/data2'
+import LineGraph from '../components/LineGraph';
+import LinearLineGraph from '../components/LinearLineGraph';
 import { tsv } from 'd3';
-import _data from "./data/emg1.csv";
+import _data from "../data/emg1.csv";
 import _ from 'lodash';
-import { startSpinner } from './components/Spinner';
-import fili from "./js/fili.esm.js";
+import { startSpinner } from '../components/Spinner';
+import fili from "../js/fili.esm.js";
 
 
 let root = null;
@@ -134,7 +134,7 @@ HTMLCanvasElement.prototype.getBBox = function () {
 
 let initData = function(){
     let data = [ json_data ]
-    root = createRoot(document.getElementById('component'))
+    root = createRoot(document.getElementById('visualizer'))
     root.render(<LinearLineGraph data={testData} />)
     loadData()
 }
