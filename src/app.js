@@ -2,17 +2,101 @@ import { createRoot } from 'react-dom/client'
 import json_data from './data/data'
 import json_data2 from './data/data2'
 import LineGraph from './components/LineGraph';
+import LinearLineGraph from './components/LinearLineGraph';
+import { tsv } from 'd3';
+import _data from "./data/emg1.csv";
+import _ from 'lodash';
 
 let root = null;
+
+let sampleFreq = 512;
+let secondsMax = 10
+let X_MAX = sampleFreq * secondsMax
+let selectedDataY = []
+let selectedDataX = []
+let df_y 
+let df_x
+let nivoData = []
+
+testData =  [
+    { x: 0, y: 7 },
+    { x: 1, y: 5 },
+    { x: 2, y: 11 },
+    { x: 3, y: 9 },
+    { x: 4, y: 13 },
+    { x: 7, y: 50 },
+    { x: 9, y: 12 },
+]
+
+
+let updateGraphComponent = async function(yVals, xMax) {
+    nivoData = []
+    await _.forEach(yVals, (value, index) => {
+        if (index < xMax){
+            x = selectedDataX[index]
+            y = value
+            nivoData.push({x, y})
+        } else 
+        {
+            console.log("done")
+            return false
+        }
+    })
+    updateData(nivoData)
+}
+let plotRawData = async function (df) {
+    await updateGraphComponent(df.values, X_MAX)
+}
+
+let removeMean = async function(df, updateGraph = false) {
+    console.log("removeMean")
+    let df_remove_mean =  df.sub(df.mean())
+    df_remove_mean.print()
+    if (updateGraph) {
+        await updateGraphComponent(df_remove_mean.values, X_MAX)
+    }
+    return df_remove_mean
+}
+
+
+let getAbsValue = async function (df, updateGraph = false) {
+    let meanRemoved = await removeMean(df)    
+    let df_abs = meanRemoved.abs()
+    if (updateGraph) {
+        await updateGraphComponent(df_abs.values, X_MAX)
+    }
+    return df_abs
+}
+
+let formatRawCSVData = async function(csvArray){
+    await _.forEach(csvArray, ({mV, mV2}, index) => {
+        selectedDataY.push(parseFloat(mV))
+        selectedDataX.push(index / sampleFreq)
+    })
+
+    df_y = new dfd.Series(selectedDataY)
+    df_x = new dfd.Series(selectedDataX)
+    //df_y.print()
+    //df_x.print()
+
+    //let df_remove_mean = removeMean(df_y, true)
+    //df_abs.iloc(["10:"]).print()
+}
+
+let loadData = async function(csvFile){
+    const rawCSV = await tsv(_data).then((data) => { return data })
+    formatRawCSVData(rawCSV)
+    //console.log(rawCSV)
+}   
 
 let createEventListener = function (id, callback) {
     document.getElementById(id).onclick = callback;
 };
 
-
 let handleEvents = function () {
-    createEventListener("d1", () => {updateData(json_data)});
-    createEventListener("d2", () => {updateData(json_data2)});
+    createEventListener("d1", () => {plotRawData(df_y, true)});
+    createEventListener("d2", () => {removeMean(df_y, true)});
+    createEventListener("d3", () => {getAbsValue(df_y, true)});
 };
 
 // Fix for getBBox error https://github.com/plouc/nivo/issues/2162#issuecomment-1467184517
@@ -23,14 +107,16 @@ HTMLCanvasElement.prototype.getBBox = function () {
 let initData = function(){
     let data = [ json_data ]
     root = createRoot(document.getElementById('component'))
-    root.render(<LineGraph data={data} />)
+    root.render(<LinearLineGraph data={testData} />)
+    loadData()
 }
 
 let updateData = function (dataset) {
-    let data = [ dataset ]
-    root.render(<LineGraph data={data} />)
+    //let data = [ dataset ]
+    root.render(<LinearLineGraph data={dataset} />)
     console.log("loading")
 }
 
 initData()
 handleEvents()
+//loadData("./data/emg1.csv")
