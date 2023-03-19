@@ -34,7 +34,9 @@ var BlocklyInterface = function () {
 
   // Clear interpreter
   window.resetInterpreter = function () {
+    console.log("resetInterpreter")
     window.interpreter = null;
+    window.workspace.highlightBlock(null);
     if (window.runner) {
       clearTimeout(window.runner);
       window.runner = null;
@@ -46,20 +48,36 @@ var BlocklyInterface = function () {
     Blockly.JavaScript.addReservedWords('highlightBlock');
     window.latestCode = Blockly.JavaScript.workspaceToCode(window.workspace);
     let xml = Blockly.Xml.workspaceToDom(window.workspace);
-    //console.log(xml);
-
     // sync code. comment to stop synching
-    window.textEditor.setValue(window.latestCode);
+    // Add this later to offline app
+    //window.textEditor.setValue(window.latestCode);
     //this.runButton = ''
   };
 
   // Add native to blockly here
   window.initApi = function (interpreter, globalObject) {
+    
+    // Plot Raw
+    var wrapper = function (cmd) {
+      console.log("plot raw ", cmd);
+      window.blocklyHooks.plotRaw()
+    };
+
+    interpreter.setProperty(
+      globalObject,
+      "plotRaw",
+      interpreter.createNativeFunction(wrapper)
+    );
+
+
+
+    
     // Pan robot
     var wrapper = function (cmd) {
       window.pan(cmd);
       console.log("PAN ", cmd);
     };
+
     interpreter.setProperty(
       globalObject,
       "testVar",
@@ -75,11 +93,14 @@ var BlocklyInterface = function () {
         printVal.innerHTML = "";
       }
     };
+
     interpreter.setProperty(
       globalObject,
       "print",
       interpreter.createNativeFunction(wrapper)
     );
+    
+
 
     // setVelocityX
     var wrapper = function (cmd, something) {
@@ -91,6 +112,8 @@ var BlocklyInterface = function () {
       "setVelocityX",
       interpreter.createNativeFunction(wrapper)
     );
+
+
 
     // setVelocityY
     var wrapper = function (cmd, something) {
@@ -255,7 +278,7 @@ var BlocklyInterface = function () {
 
   
   window.runBlocklyCode = function () {
-    //console.log("latest Code: ", window.latestCode);
+    console.log("latest Code: ", window.latestCode);
     //console.log("Editor mode? ", window.editorMode);
     //console.log("Text code is ", window.textEditor.getValue());
     window.workspace.highlightBlock(null);

@@ -116,6 +116,12 @@ let createEventListener = function (id, callback) {
     document.getElementById(id).onclick = callback;
 };
 
+window.blocklyHooks = {
+    plotRaw: () => {
+        plotRawData(df_y, true)
+    }
+}
+
 let handleEvents = function () {
     createEventListener("d1", () => {plotRawData(df_y, true)});
     createEventListener("d2", () => {removeMean(df_y, true)});

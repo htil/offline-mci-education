@@ -1,6 +1,35 @@
 // Block creation tool https://blockly-demo.appspot.com/static/demos/blockfactory/index.html
 
 var createCustomBlocks = function () {
+
+  /* plot raw */
+  var plotRaw = {
+    type: "plot_raw",
+    message0: "plot  %1 seconds of raw data",
+    args0: [{ type: "input_value", name: "SECONDS", check: "Number" }],
+    previousStatement: null,
+    nextStatement: null,
+    colour: "%{BKY_LOOPS_HUE}",
+  }
+
+  Blockly.Blocks["plot_raw"] = {
+    init: function () {
+      this.jsonInit(plotRaw);
+    },
+  }
+
+  Blockly.JavaScript["plot_raw"] = function(block) {
+    var seconds = Blockly.JavaScript.valueToCode(
+      block,
+      "SECONDS",
+      Blockly.JavaScript.ORDER_NONE
+    );
+    //return `plotRaw();\n`
+    return `plotRaw(${seconds})\n`;
+  } 
+
+
+
   /* pan() */
   var panBy = {
     message0: "pan to %1",
