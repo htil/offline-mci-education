@@ -1,8 +1,12 @@
+import { Toolbox, unwind } from "./utility/Toolbox.js";
+import { Categories } from "./blocks/categories.js";
+import _, { sample } from "lodash";
+
 /** Class used to manage Blockly interface
  * @class
  */
 
-var BlocklyInterface = function () {
+export const BlocklyInterface = function () {
   // Handle custom block creation
   createCustomBlocks();
   const printVal = document.querySelector("#printVal");
@@ -15,10 +19,38 @@ var BlocklyInterface = function () {
   window.latestCode = "";
   window.editorMode = "block";
   window.highlightPause = false;
+  let {cat_logic, cat_loops, cat_math, cat_sep, cat_data, cat_vars, cat_list} = Categories
+  let _toolbox = new Toolbox([
+    cat_logic, 
+    cat_loops, 
+    cat_math, 
+    cat_sep,
+    cat_data,
+    cat_vars,
+    cat_list
+  ])
+
 
   window.workspace = Blockly.inject("blocklyDiv", {
     media: "https://unpkg.com/browse/blockly/media/",
-    toolbox: document.getElementById("toolbox"),
+    toolbox: _toolbox.toString()
+    //toolbox: document.getElementById("toolbox"),
+  });
+
+  window.workspace.registerToolboxCategoryCallback("DATA", (ws) => {
+    console.log("Data Category");
+    let res = []
+
+    // Add Plot Raw Block to Toolbox
+    let plot_raw_block = unwind(["plot_raw"], true)
+    plot_raw_block = Blockly.Xml.textToDom(plot_raw_block).firstChild
+    res.push(plot_raw_block)
+
+    let get_raw = unwind(["getRaw"], true)
+    get_raw = Blockly.Xml.textToDom(get_raw).firstChild
+    res.push(get_raw)
+
+    return res
   });
 
 
@@ -34,7 +66,7 @@ var BlocklyInterface = function () {
 
   // Clear interpreter
   window.resetInterpreter = function () {
-    console.log("resetInterpreter")
+    //console.log("resetInterpreter")
     window.interpreter = null;
     window.workspace.highlightBlock(null);
     if (window.runner) {
@@ -56,11 +88,37 @@ var BlocklyInterface = function () {
 
   // Add native to blockly here
   window.initApi = function (interpreter, globalObject) {
+
+        // Get Raw 
+        // Not really sure if this matters. 
+        //the code doesn't actually call getRaw in customBlock currently. 
+        //Keep and eye on this in the future.
+        var wrapper = function () {
+          try {
+            return window.blocklyHooks.raw();
+          } catch (error) {
+            return error;
+          }
+        };
+
+        interpreter.setProperty(
+          globalObject,
+          "getRawData",
+          interpreter.createNativeFunction(wrapper)
+        );
+        
+
+
     
     // Plot Raw
-    var wrapper = function (cmd) {
-      console.log("plot raw ", cmd);
-      window.blocklyHooks.plotRaw()
+    var wrapper = function (list, sampleCount) {
+      if (list.properties) {
+        var arr = _.values(list.properties);
+        window.blocklyHooks.plotRaw(arr, true, sampleCount)
+      } else {
+        console.log(list, sampleCount)
+        window.blocklyHooks.plotRaw(list, false, sampleCount)
+      }
     };
 
     interpreter.setProperty(
@@ -70,8 +128,6 @@ var BlocklyInterface = function () {
     );
 
 
-
-    
     // Pan robot
     var wrapper = function (cmd) {
       window.pan(cmd);

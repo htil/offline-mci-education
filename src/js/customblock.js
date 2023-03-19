@@ -2,33 +2,67 @@
 
 var createCustomBlocks = function () {
 
+  /* Get Raw Data*/
+  var getRawData = {
+    type: "getRaw",
+    message0: "get signal data",
+    output: null,
+    colour: 75,
+    tooltip: "",
+    helpUrl: "",
+  };
+
+  Blockly.Blocks["getRaw"] = {
+    init: function () {
+      this.jsonInit(getRawData);
+    },
+  };
+
+  Blockly.JavaScript["getRaw"] = function (block) {
+    var code = `getRawData()`;
+    return [code, Blockly.JavaScript.ORDER_FUNCTION_CALL];
+  };
+
+
   /* plot raw */
   var plotRaw = {
     type: "plot_raw",
-    message0: "plot  %1 seconds of raw data",
-    args0: [{ type: "input_value", name: "SECONDS", check: "Number" }],
-    previousStatement: null,
-    nextStatement: null,
+    message0: "Plot Signal %1 # of Samples %2",
+    inputsInline: false,
+    args0: [
+      { type: "input_value", name: "LIST" },
+      {
+        type: "input_value",
+        name: "SECONDS",
+        check: "Number",
+      },
+    ],
     colour: "%{BKY_LOOPS_HUE}",
-  }
+    "previousStatement": null,
+    "nextStatement": null,
+  };
 
   Blockly.Blocks["plot_raw"] = {
     init: function () {
       this.jsonInit(plotRaw);
     },
-  }
+  };
 
-  Blockly.JavaScript["plot_raw"] = function(block) {
+  Blockly.JavaScript["plot_raw"] = function (block) {
+    //var seconds = block.getFieldValue("SECONDS");
+    var list = Blockly.JavaScript.valueToCode(
+      block,
+      "LIST",
+      Blockly.JavaScript.ORDER_NONE
+    );
+
     var seconds = Blockly.JavaScript.valueToCode(
       block,
       "SECONDS",
       Blockly.JavaScript.ORDER_NONE
     );
-    //return `plotRaw();\n`
-    return `plotRaw(${seconds})\n`;
-  } 
-
-
+    return `plotRaw(${list}, ${seconds})\n`;
+  };
 
   /* pan() */
   var panBy = {

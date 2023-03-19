@@ -31,24 +31,26 @@ testData =  [
     { x: 9, y: 12 },
 ]
 
-let updateGraphComponent = async function(yVals, xMax) {
+let updateGraphComponent = async function(yVals, xMax, userDefined = false) {
     nivoData = []
     startSpinner()
     await _.forEach(yVals, (value, index) => {
         if (index < xMax){
-            x = selectedDataX[index]
+            // if user defined use index else calculate based on sample freq
+            x = userDefined ? index : selectedDataX[index]
             y = value
             nivoData.push({x, y})
         } else 
         {
-            console.log("done")
+            //console.log("done")
             return false
         }
     })
     updateData(nivoData)
 }
-let plotRawData = async function (df) {
-    await updateGraphComponent(df.values, X_MAX)
+let plotRawData = async function (y, userDefined = false, sampleMax = 0) {
+    let plotMax = sampleMax > 0 ? sampleMax : X_MAX;
+    await updateGraphComponent(y, plotMax, userDefined)
 }
 
 let removeMean = async function(df, updateGraph = false) {
@@ -117,9 +119,13 @@ let createEventListener = function (id, callback) {
 };
 
 window.blocklyHooks = {
-    plotRaw: () => {
-        plotRawData(df_y, true)
-    }
+    plotRaw: (y, userDefined = false, sampleMax = 0) => {
+        //plotRawData(df_y, true)
+        //console.log(y)
+        plotRawData(y, userDefined, sampleMax)
+    },
+
+    raw: () => {return df_y.values}
 }
 
 let handleEvents = function () {
@@ -148,7 +154,7 @@ let initData = function(){
 let updateData = function (dataset) {
     //let data = [ dataset ]
     root.render(<LinearLineGraph data={dataset} />)
-    console.log("loading")
+    //console.log("loading")
 }
 
 initData()

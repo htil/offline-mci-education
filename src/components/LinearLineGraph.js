@@ -47,7 +47,8 @@ export default class LinearLineGraph extends React.Component {
                 "axes",
                 "lines",
                 () => {
-                    console.log("done drawing")
+                    //console.log("done drawing")
+                    stopSpinner()
                 }
             ]}
         />
