@@ -2,12 +2,87 @@
 
 var createCustomBlocks = function () {
 
+
+  /* Get Absolute Values */
+
+    var getAbsoluteData  = {
+    type: "getabsdata",
+    message0: "Get Absolute Values %1",
+    args0: [
+      {
+        "type": "input_value",
+        "name": "LIST"
+      }
+    ],
+    output: null,
+    colour: 330,
+    tooltip: "",
+    helpUrl: ""
+  }
+
+  Blockly.Blocks["getabsdata"] = {
+    init: function () {
+      this.jsonInit(getAbsoluteData);
+    },
+  };
+
+  Blockly.JavaScript["getabsdata"] = function (block) {
+    var list = Blockly.JavaScript.valueToCode(
+      block,
+      "LIST",
+      Blockly.JavaScript.ORDER_NONE
+    );
+
+    var code = `getAbsVals(${list})`;
+    return [code, Blockly.JavaScript.ORDER_FUNCTION_CALL];
+  };
+
+
+//////////////////////////////////////////////////////////////////
+
+  /* Remove Mean */
+
+  var removeSignalMean  = {
+    type: "removeSignalMean",
+    message0: "Remove Mean %1",
+    args0: [
+      {
+        "type": "input_value",
+        "name": "LIST"
+      }
+    ],
+    output: null,
+    colour: 330,
+    tooltip: "",
+    helpUrl: ""
+  }
+
+  Blockly.Blocks["removeSignalMean"] = {
+    init: function () {
+      this.jsonInit(removeSignalMean);
+    },
+  };
+
+  Blockly.JavaScript["removeSignalMean"] = function (block) {
+    var list = Blockly.JavaScript.valueToCode(
+      block,
+      "LIST",
+      Blockly.JavaScript.ORDER_NONE
+    );
+
+    var code = `removeMean(${list})`;
+    return [code, Blockly.JavaScript.ORDER_FUNCTION_CALL];
+  };
+
+
+//////////////////////////////////////////////////////////////////
+
   /* Get Raw Data*/
   var getRawData = {
     type: "getRaw",
-    message0: "get signal data",
+    message0: "Get Signal ",
     output: null,
-    colour: 75,
+    colour: 330,
     tooltip: "",
     helpUrl: "",
   };
@@ -24,6 +99,8 @@ var createCustomBlocks = function () {
   };
 
 
+  //////////////////////////////////////////////////////////////////
+
   /* plot raw */
   var plotRaw = {
     type: "plot_raw",
@@ -37,7 +114,7 @@ var createCustomBlocks = function () {
         check: "Number",
       },
     ],
-    colour: "%{BKY_LOOPS_HUE}",
+    colour: 330,
     "previousStatement": null,
     "nextStatement": null,
   };
@@ -61,8 +138,14 @@ var createCustomBlocks = function () {
       "SECONDS",
       Blockly.JavaScript.ORDER_NONE
     );
+
+    seconds = seconds ? seconds : 0
+
     return `plotRaw(${list}, ${seconds})\n`;
   };
+
+
+  //////////////////////////////////////////////////////////////////
 
   /* pan() */
   var panBy = {
@@ -91,6 +174,9 @@ var createCustomBlocks = function () {
     return code;
   };
 
+
+  //////////////////////////////////////////////////////////////////
+
   /* Print */
   var print = {
     message0: "print %1",
@@ -114,6 +200,9 @@ var createCustomBlocks = function () {
     );
     return `print(${msg});\n`;
   };
+
+
+  //////////////////////////////////////////////////////////////////
 
   /******** setVelocityX *****/
   var setVelocityX = {
@@ -144,6 +233,9 @@ var createCustomBlocks = function () {
   };
   /******** setVelocityX *****/
 
+
+  //////////////////////////////////////////////////////////////////
+
   /******** setVelocityY *****/
   var setVelocityY = {
     message0: "setVelocityY %1",
@@ -173,6 +265,10 @@ var createCustomBlocks = function () {
   };
 
   /******** setVelocityY *****/
+
+
+  //////////////////////////////////////////////////////////////////
+
 
   /******** setX *****/
   var setPlayerX = {

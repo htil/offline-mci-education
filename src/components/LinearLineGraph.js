@@ -7,7 +7,7 @@ import { stopSpinner } from './Spinner';
 export default class LinearLineGraph extends React.Component {
     render(){
         const commonProperties = {
-            width: window.innerWidth * 0.55,
+            width: window.innerWidth * 0.45,
             height: window.innerHeight * 0.75,
             margin: { top: 20, right: 20, bottom: 60, left: 80 },
             animate: true,

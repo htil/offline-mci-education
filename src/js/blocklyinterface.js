@@ -1,7 +1,7 @@
 import { Toolbox, unwind } from "./utility/Toolbox.js";
 import { Categories } from "./blocks/categories.js";
 import _ from "lodash";
-import {blocklyHooks}  from "./app.js";
+import { blocklyHooks } from "./app.js";
 //console.log(blocklyHooks)
 
 /** Class used to manage Blockly interface
@@ -21,40 +21,50 @@ export const BlocklyInterface = function () {
   window.latestCode = "";
   window.editorMode = "block";
   window.highlightPause = false;
-  let {cat_logic, cat_loops, cat_math, cat_sep, cat_data, cat_vars, cat_list} = Categories
-  let _toolbox = new Toolbox([
-    cat_logic, 
-    cat_loops, 
-    cat_math, 
+  let {
+    cat_logic,
+    cat_loops,
+    cat_math,
     cat_sep,
     cat_data,
     cat_vars,
-    cat_list
-  ])
-
+    cat_list,
+  } = Categories;
+  let _toolbox = new Toolbox([
+    cat_logic,
+    cat_loops,
+    cat_math,
+    cat_sep,
+    cat_data,
+    cat_vars,
+    cat_list,
+  ]);
 
   window.workspace = Blockly.inject("blocklyDiv", {
     media: "https://unpkg.com/browse/blockly/media/",
-    toolbox: _toolbox.toString()
+    toolbox: _toolbox.toString(),
     //toolbox: document.getElementById("toolbox"),
   });
 
-  window.workspace.registerToolboxCategoryCallback("DATA", (ws) => {
-    console.log("Data Category");
+
+  // Create custom tool box to load when category selected
+  let createCustomToolBox = (blocks) => {
     let res = []
-
-    // Add Plot Raw Block to Toolbox
-    let plot_raw_block = unwind(["plot_raw"], true)
-    plot_raw_block = Blockly.Xml.textToDom(plot_raw_block).firstChild
-    res.push(plot_raw_block)
-
-    let get_raw = unwind(["getRaw"], true)
-    get_raw = Blockly.Xml.textToDom(get_raw).firstChild
-    res.push(get_raw)
-
+    blocks.forEach(element => {
+      let block = unwind([element], true);
+      block = Blockly.Xml.textToDom(block).firstChild;
+      res.push(block)
+    })
+    console.log(res)
     return res
-  });
+  }
 
+  // Triggers everytime category opens
+  window.workspace.registerToolboxCategoryCallback("DATA", (ws) => {
+
+    return createCustomToolBox(["plot_raw", "getRaw", "removeSignalMean", "getabsdata"])
+
+  });
 
   /*
   Blockly.Xml.domToWorkspace(
@@ -78,8 +88,8 @@ export const BlocklyInterface = function () {
   };
 
   window.generateCodeAndLoadIntoInterpreter = function () {
-    Blockly.JavaScript.STATEMENT_PREFIX = 'highlightBlock(%1);\n';
-    Blockly.JavaScript.addReservedWords('highlightBlock');
+    Blockly.JavaScript.STATEMENT_PREFIX = "highlightBlock(%1);\n";
+    Blockly.JavaScript.addReservedWords("highlightBlock");
     window.latestCode = Blockly.JavaScript.workspaceToCode(window.workspace);
     let xml = Blockly.Xml.workspaceToDom(window.workspace);
     // sync code. comment to stop synching
@@ -88,38 +98,117 @@ export const BlocklyInterface = function () {
     //this.runButton = ''
   };
 
+
+  let formatList = (list) => {
+    return list.properties ? _.values(list.properties) : list
+  }
+
+  // We need this to handle how to plot x-axis different based on wheter we are handlings user defined data or physio data
+  // This is just a quick fix for now. When updated to support different types of data we will need to revisit this
+  // Currently the plot functions checks to see if the list has a properties node. If so it assumes its user defined. Otherwise the x-axis is simply mapped to the value's index
+  let formatListCallback = (list, processedData, cb) => {
+    if (list.properties){
+      list.properties = processedData
+      cb(list)  // returns here  
+    } else {
+      cb(processedData)
+    }
+  }
+
+
+  /////////////////////// BEGIN INTERPRETER SETUP ///////////////////////////////////////////
+
   // Add native to blockly here
+  // This is too big now needs to be moved into its on module (TODO)
   window.initApi = function (interpreter, globalObject) {
 
-        // Get Raw 
-        // Not really sure if this matters. 
-        //the code doesn't actually call getRaw in customBlock currently. 
-        //Keep and eye on this in the future.
-        var wrapper = function () {
-          try {
-            return blocklyHooks.raw();
-          } catch (error) {
-            return error;
-          }
-        };
 
-        interpreter.setProperty(
-          globalObject,
-          "getRawData",
-          interpreter.createNativeFunction(wrapper)
-        );
-        
+    /* Get Filter */
 
 
-    
+
+    //////////////////////////////////////////////////////////////////
+
+    /* Get Abs Values */
+
+    var wrapper = async function (list, callback) {
+      try {
+
+        let arr = formatList(list)
+        let absData = await blocklyHooks.getAbsValueHook(arr)
+        formatListCallback(list, absData, callback)
+      } catch (error) {
+        return error;
+      }
+    };
+
+    interpreter.setProperty(
+      globalObject,
+      "getAbsVals",
+      interpreter.createAsyncFunction(wrapper)
+    );
+
+
+
+    //////////////////////////////////////////////////////////////////
+
+
+
+
+    /* Remove Mean */
+    // Example of using async functions with JS interpreter
+    // See https://neil.fraser.name/software/JS-Interpreter/demos/async.html for example
+    var wrapper = async function (list, callback) {
+      try {
+        let arr = formatList(list)
+        let meanRemovedData = await blocklyHooks.removeMeanHook(arr)
+        formatListCallback(list, meanRemovedData, callback)
+        //callback(meanRemovedData)    // returns here    
+      } catch (error) {
+        return error;
+      }
+    };
+
+    interpreter.setProperty(
+      globalObject,
+      "removeMean",
+      interpreter.createAsyncFunction(wrapper)
+    );
+
+
+
+    //////////////////////////////////////////////////////////////////
+
+
+
+    // Get Raw
+    // Not really sure if this matters.
+    //the code doesn't actually call getRaw in customBlock currently.
+    //Keep and eye on this in the future.
+    var wrapper = function () {
+      try {
+        return blocklyHooks.raw();
+      } catch (error) {
+        return error;
+      }
+    };
+
+    interpreter.setProperty(
+      globalObject,
+      "getRawData",
+      interpreter.createNativeFunction(wrapper)
+    );
+
+    //////////////////////////////////////////////////////////////////
+
     // Plot Raw
     var wrapper = function (list, sampleCount) {
       if (list.properties) {
         var arr = _.values(list.properties);
-        blocklyHooks.plotRaw(arr, true, sampleCount)
+        blocklyHooks.plotRaw(arr, true, sampleCount);
       } else {
         //console.log(list, sampleCount)
-        blocklyHooks.plotRaw(list, false, sampleCount)
+        blocklyHooks.plotRaw(list, false, sampleCount);
       }
     };
 
@@ -128,6 +217,8 @@ export const BlocklyInterface = function () {
       "plotRaw",
       interpreter.createNativeFunction(wrapper)
     );
+
+    //////////////////////////////////////////////////////////////////
 
 
     // Pan robot
@@ -157,7 +248,9 @@ export const BlocklyInterface = function () {
       "print",
       interpreter.createNativeFunction(wrapper)
     );
-    
+
+
+    //////////////////////////////////////////////////////////////////
 
 
     // setVelocityX
@@ -171,8 +264,6 @@ export const BlocklyInterface = function () {
       interpreter.createNativeFunction(wrapper)
     );
 
-
-
     // setVelocityY
     var wrapper = function (cmd, something) {
       window.player.setVelocityY(cmd * -1);
@@ -185,6 +276,8 @@ export const BlocklyInterface = function () {
 
     // END setY
 
+    //////////////////////////////////////////////////////////////////
+
     // setX
     var wrapper = function (cmd, something) {
       window.player.x = cmd;
@@ -194,6 +287,8 @@ export const BlocklyInterface = function () {
       "setX",
       interpreter.createNativeFunction(wrapper)
     );
+
+    //////////////////////////////////////////////////////////////////
 
     // setY
     var wrapper = function (cmd, something) {
@@ -206,6 +301,8 @@ export const BlocklyInterface = function () {
     );
 
     // END setX
+
+    //////////////////////////////////////////////////////////////////
 
     // Band power
     var wrapper = function (band, channel) {
@@ -239,6 +336,7 @@ export const BlocklyInterface = function () {
       interpreter.createNativeFunction(wrapper)
     );
 
+    //////////////////////////////////////////////////////////////////
 
     // Expression Score
     var wrapper = function (expression) {
@@ -255,6 +353,7 @@ export const BlocklyInterface = function () {
       interpreter.createNativeFunction(wrapper)
     );
 
+    //////////////////////////////////////////////////////////////////
 
     // Get Speech
     var wrapper = function () {
@@ -270,6 +369,7 @@ export const BlocklyInterface = function () {
       interpreter.createNativeFunction(wrapper)
     );
 
+    //////////////////////////////////////////////////////////////////
 
     // Speak
     var wrapper = function (text) {
@@ -285,6 +385,7 @@ export const BlocklyInterface = function () {
       interpreter.createNativeFunction(wrapper)
     );
 
+    //////////////////////////////////////////////////////////////////
 
     // Update Face
     var wrapper = function (emotion, gaze, color) {
@@ -300,6 +401,7 @@ export const BlocklyInterface = function () {
       interpreter.createNativeFunction(wrapper)
     );
 
+    //////////////////////////////////////////////////////////////////
 
     // Get Physio
     var wrapper = function () {
@@ -317,24 +419,40 @@ export const BlocklyInterface = function () {
       interpreter.createNativeFunction(wrapper)
     );
 
+
+    //////////////////////////////////////////////////////////////////
+
     // Handle highlighting
     function highlightBlock(id) {
       window.workspace.highlightBlock(id);
     }
 
     // Add an API function for highlighting blocks.
-    const wrapperHighlight = function(id) {
-      id = String(id || '');
+    const wrapperHighlight = function (id) {
+      id = String(id || "");
       return highlightBlock(id);
     };
-    interpreter.setProperty(globalObject, 'highlightBlock',
-        interpreter.createNativeFunction(wrapperHighlight));
+    interpreter.setProperty(
+      globalObject,
+      "highlightBlock",
+      interpreter.createNativeFunction(wrapperHighlight)
+    );
 
     // Add an API for the wait block.  See wait_block.js
     initInterpreterWaitForSeconds(interpreter, globalObject);
   };
 
-  
+
+
+
+
+  ///////////////////////END INTERPRETER SETUP ///////////////////////////////////////////
+
+
+
+
+
+
   window.runBlocklyCode = function () {
     console.log("latest Code: ", window.latestCode);
     //console.log("Editor mode? ", window.editorMode);
@@ -354,11 +472,10 @@ export const BlocklyInterface = function () {
 
       // console.log("running", window.interpreter)
 
-      // Run is the example provided for async apps. However highlighting does not work well 
+      // Run is the example provided for async apps. However highlighting does not work well
       //var hasMore = window.interpreter.run();
 
       var hasMore = window.interpreter.step();
-
 
       //console.log("hasMore: ", hasMore)
       if (hasMore) {
@@ -391,7 +508,6 @@ BlocklyInterface.prototype.init = function () {
   });
 };
 
-
 window.runBlockCode = function () {
   if (window.interprete == null) {
     //this.runButton = 'disabled'
@@ -399,4 +515,3 @@ window.runBlockCode = function () {
     setTimeout(window.runBlocklyCode, 1);
   }
 };
-

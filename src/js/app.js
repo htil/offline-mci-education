@@ -33,12 +33,29 @@ let testData =  [
 
 export const blocklyHooks = {
     plotRaw: (y, userDefined = false, sampleMax = 0) => {
-        //plotRawData(df_y, true)
-        //console.log(y)
         plotRawData(y, userDefined, sampleMax)
     },
 
-    raw: () => {return df_y.values}
+    raw: () => {return df_y.values},
+
+    removeMeanHook: async (list) => {
+        let df = new dfd.Series(list)
+        let mean_removed =  await removeMean(df)
+        //mean_removed.print()
+        return mean_removed.values
+    },
+
+    getAbsValueHook: async(list) => {
+        let df = new dfd.Series(list)
+        let abs_data = await getAbsValue(df)
+        console.log(abs_data)
+        return abs_data.values
+    },
+
+    filterSignalHook: async (list, cutoff) => {
+        let filteredData = await filterSignal(list, cutoff);
+        return filteredData
+    }
 }
 
 
@@ -96,8 +113,8 @@ let filterSignal = async function(y, cutoff, updateGraph = false){
 
 
 let getAbsValue = async function (df, updateGraph = false) {
-    let meanRemoved = await removeMean(df)    
-    let df_abs = meanRemoved.abs()
+    //let meanRemoved = await removeMean(df)    
+    let df_abs = df.abs()
     if (updateGraph) {
         await updateGraphComponent(df_abs.values, X_MAX)
     }

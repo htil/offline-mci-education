@@ -7,14 +7,14 @@
 export class Toolbox {
   constructor(modules) {
     this.modules = modules;
-    console.log(this.modules);
+    //console.log(this.modules);
   }
 
   toString() {
     let res = '<xml style="display: none;">';
     res += unwind(this.modules);
     res += "</xml>";
-    console.log(res);
+    //console.log(res);
     return res
   }
 }
