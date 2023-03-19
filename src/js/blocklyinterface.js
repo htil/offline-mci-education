@@ -1,6 +1,8 @@
 import { Toolbox, unwind } from "./utility/Toolbox.js";
 import { Categories } from "./blocks/categories.js";
-import _, { sample } from "lodash";
+import _ from "lodash";
+import {blocklyHooks}  from "./app.js";
+//console.log(blocklyHooks)
 
 /** Class used to manage Blockly interface
  * @class
@@ -95,7 +97,7 @@ export const BlocklyInterface = function () {
         //Keep and eye on this in the future.
         var wrapper = function () {
           try {
-            return window.blocklyHooks.raw();
+            return blocklyHooks.raw();
           } catch (error) {
             return error;
           }
@@ -114,10 +116,10 @@ export const BlocklyInterface = function () {
     var wrapper = function (list, sampleCount) {
       if (list.properties) {
         var arr = _.values(list.properties);
-        window.blocklyHooks.plotRaw(arr, true, sampleCount)
+        blocklyHooks.plotRaw(arr, true, sampleCount)
       } else {
-        console.log(list, sampleCount)
-        window.blocklyHooks.plotRaw(list, false, sampleCount)
+        //console.log(list, sampleCount)
+        blocklyHooks.plotRaw(list, false, sampleCount)
       }
     };
 

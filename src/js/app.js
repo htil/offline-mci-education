@@ -21,7 +21,7 @@ let df_y
 let df_x
 let nivoData = []
 
-testData =  [
+let testData =  [
     { x: 0, y: 7 },
     { x: 1, y: 5 },
     { x: 2, y: 11 },
@@ -31,14 +31,25 @@ testData =  [
     { x: 9, y: 12 },
 ]
 
+export const blocklyHooks = {
+    plotRaw: (y, userDefined = false, sampleMax = 0) => {
+        //plotRawData(df_y, true)
+        //console.log(y)
+        plotRawData(y, userDefined, sampleMax)
+    },
+
+    raw: () => {return df_y.values}
+}
+
+
 let updateGraphComponent = async function(yVals, xMax, userDefined = false) {
     nivoData = []
     startSpinner()
     await _.forEach(yVals, (value, index) => {
         if (index < xMax){
             // if user defined use index else calculate based on sample freq
-            x = userDefined ? index : selectedDataX[index]
-            y = value
+            let x = userDefined ? index : selectedDataX[index]
+            let y = value
             nivoData.push({x, y})
         } else 
         {
@@ -117,16 +128,6 @@ let loadData = async function(csvFile){
 let createEventListener = function (id, callback) {
     document.getElementById(id).onclick = callback;
 };
-
-window.blocklyHooks = {
-    plotRaw: (y, userDefined = false, sampleMax = 0) => {
-        //plotRawData(df_y, true)
-        //console.log(y)
-        plotRawData(y, userDefined, sampleMax)
-    },
-
-    raw: () => {return df_y.values}
-}
 
 let handleEvents = function () {
     createEventListener("d1", () => {plotRawData(df_y, true)});
