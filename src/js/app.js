@@ -175,6 +175,7 @@ let removeMean = async function (df, updateGraph = false) {
 };
 
 let filterSignal = async function (y, low, cutoff, updateGraph = false) {
+  console.log("filtering signal")
   const iirCalculator = new fili.CalcCascades();
 
   /*
@@ -207,7 +208,7 @@ let filterSignal = async function (y, low, cutoff, updateGraph = false) {
   const filter = new fili.IirFilter(iirFilterCoeffs);
 
   signalFiltered = filter.simulate(y);
-  console.log(signalFiltered);
+  //console.log(signalFiltered);
   if (updateGraph) {
     await updateGraphComponent(signalFiltered, X_MAX);
   }
