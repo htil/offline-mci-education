@@ -39,6 +39,24 @@ let eById = (id) => {
   return res;
 };
 
+
+let openPage = (url) => {
+  window.open(url);
+}
+
+eById("sportsData").onclick = () => {
+  openPage("https://scorestream.com/")
+}
+
+eById("musicData").onclick = () => {
+  openPage("https://kworb.net/spotify/country/us_daily.html")
+}
+
+eById("weatherData").onclick = () => {
+  openPage("https://www.weather.gov/")
+}
+
+
 let load_input = eById("file_handler");
 
 load_input.onchange = (e) => {
@@ -49,19 +67,10 @@ load_input.onchange = (e) => {
     return;
   }
 
-  let reader = new FileReader();
-
-  reader.onload = (e) => {
-    let contents = e.target.result.toString();
-    let as_xml = Blockly.Xml.textToDom(contents);
-    Blockly.Xml.domToWorkspace(as_xml, window.workspace);
-    //console.log(contents);
-  };
-
-  reader.readAsText(file);
+  loadProject(file)
 };
 
-let loadProject = function () {
+let loadProject = function (file) {
   console.log("load project");
   window.workspace.clear();
   window.workspace.clearUndo();
@@ -69,13 +78,17 @@ let loadProject = function () {
   let reader = new FileReader();
 
   reader.onload = (e) => {
-    console.log(e);
+    let contents = e.target.result.toString();
+    let as_xml = Blockly.Xml.textToDom(contents);
+    Blockly.Xml.domToWorkspace(as_xml, window.workspace);
   };
+
+  reader.readAsText(file);
 };
 
 let download = function () {
   let filename = prompt();
-  filename += `${filename}.xml`;
+  filename = `${filename}.xml`;
 
   let as_dom = Blockly.Xml.workspaceToDom(window.workspace);
   let as_text = Blockly.Xml.domToText(as_dom);
@@ -239,6 +252,7 @@ let createEventListener = function (id, callback) {
 };
 
 let handleEvents = function () {
+  /*
   createEventListener("d1", () => {
     plotRawData(df_y, true);
   });
@@ -253,8 +267,9 @@ let handleEvents = function () {
     //let _y = await getAbsValue(df_y);
     //console.log(_y.values)
     //filterSignal(_y.values, 3, true);
-    loadProject();
+    //loadProject();
   });
+  */
 };
 
 // Fix for getBBox error https://github.com/plouc/nivo/issues/2162#issuecomment-1467184517
@@ -276,5 +291,5 @@ let updateData = function (dataset) {
 };
 
 initData();
-handleEvents();
+//handleEvents();
 //loadData("./data/emg1.csv")
