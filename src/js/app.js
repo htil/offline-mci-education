@@ -136,9 +136,9 @@ export const blocklyHooks = {
     return abs_data.values;
   },
 
-  filterSignalHook: async (list, low, high) => {
+  filterSignalHook: (list, low, high) => {
     //console.log(list, low, high)
-    let filteredData = await filterSignal(list, low, high);
+    let filteredData = filterSignal(list, low, high);
     return filteredData;
   },
 };
@@ -174,7 +174,7 @@ let removeMean = async function (df, updateGraph = false) {
   return df_remove_mean;
 };
 
-let filterSignal = async function (y, low, cutoff, updateGraph = false) {
+let filterSignal = function (y, low, cutoff, updateGraph = false) {
   console.log("filtering signal")
   const iirCalculator = new fili.CalcCascades();
 
@@ -209,9 +209,12 @@ let filterSignal = async function (y, low, cutoff, updateGraph = false) {
 
   signalFiltered = filter.simulate(y);
   //console.log(signalFiltered);
+
+  /*
   if (updateGraph) {
     await updateGraphComponent(signalFiltered, X_MAX);
   }
+  */
 
   return signalFiltered;
 };

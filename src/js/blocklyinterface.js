@@ -123,12 +123,20 @@ export const BlocklyInterface = function () {
   // This is too big now needs to be moved into its on module (TODO)
   window.initApi = function (interpreter, globalObject) {
     /* Get Filter */
-    var wrapper = async function (list, low, high, callback) {
+    var wrapper = function (list, low, high, callback) {
       try {
         //console.log(list, low, high)
         let arr = formatList(list);
-        let filteredData = await blocklyHooks.filterSignalHook(arr, low, high);
-        formatListCallback(list, filteredData, callback);
+        let filteredData = blocklyHooks.filterSignalHook(arr, low, high);
+        //formatListCallback(list, filteredData, callback);
+        if (list.properties) {
+          list.properties = filteredData;
+          return list;
+          //cb(list); // returns here
+        } else {
+          //cb(processedData);
+          return filteredData;
+        }
       } catch (error) {
         return error;
       }
@@ -137,7 +145,7 @@ export const BlocklyInterface = function () {
     interpreter.setProperty(
       globalObject,
       "filterSignal",
-      interpreter.createAsyncFunction(wrapper)
+      interpreter.createNativeFunction(wrapper)
     );
 
     //////////////////////////////////////////////////////////////////
@@ -505,7 +513,3 @@ window.runBlockCode = function () {
     setTimeout(window.runBlocklyCode, 1);
   }
 };
-
-
-
-
