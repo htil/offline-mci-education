@@ -2,23 +2,70 @@
 
 var createCustomBlocks = function () {
 
+  /* Get Filter */
+  var filterData = {
+    "type": "filter_signal",
+    "message0": "filter between %1 and  %2 %3",
+    "args0": [
+      {
+        "type": "field_input",
+        "name": "low",
+        "text": "0"
+      },
+      {
+        "type": "field_input",
+        "name": "high",
+        "text": "30"
+      },
+      {
+        "type": "input_value",
+        "name": "signal"
+      }
+    ],
+    "output": null,
+    "colour": 230,
+    "tooltip": "",
+    "helpUrl": ""
+  }
+
+  Blockly.Blocks["filter_signal"] = {
+    init: function () {
+      this.jsonInit(filterData);
+    },
+  };
+
+  Blockly.JavaScript['filter_signal'] = function(block) {
+    var text_low = block.getFieldValue('low');
+    var text_high = block.getFieldValue('high');
+    var value_signal = Blockly.JavaScript.valueToCode(block, 'signal', Blockly.JavaScript.ORDER_ATOMIC);
+    //console.log(text_low, text_high, value_signal)
+    // TODO: Assemble JavaScript into code variable.
+    var code = `filterSignal(${value_signal}, ${text_low}, ${text_high})`;
+    // TODO: Change ORDER_NONE to the correct strength.
+    return [code, Blockly.JavaScript.ORDER_NONE];
+  };
+
+  
+
+
+  //////////////////////////////////////////////////////////////////
 
   /* Get Absolute Values */
 
-    var getAbsoluteData  = {
+  var getAbsoluteData = {
     type: "getabsdata",
     message0: "Get Absolute Values %1",
     args0: [
       {
-        "type": "input_value",
-        "name": "LIST"
-      }
+        type: "input_value",
+        name: "LIST",
+      },
     ],
     output: null,
     colour: 330,
     tooltip: "",
-    helpUrl: ""
-  }
+    helpUrl: "",
+  };
 
   Blockly.Blocks["getabsdata"] = {
     init: function () {
@@ -37,25 +84,24 @@ var createCustomBlocks = function () {
     return [code, Blockly.JavaScript.ORDER_FUNCTION_CALL];
   };
 
-
-//////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////
 
   /* Remove Mean */
 
-  var removeSignalMean  = {
+  var removeSignalMean = {
     type: "removeSignalMean",
     message0: "Remove Mean %1",
     args0: [
       {
-        "type": "input_value",
-        "name": "LIST"
-      }
+        type: "input_value",
+        name: "LIST",
+      },
     ],
     output: null,
     colour: 330,
     tooltip: "",
-    helpUrl: ""
-  }
+    helpUrl: "",
+  };
 
   Blockly.Blocks["removeSignalMean"] = {
     init: function () {
@@ -74,8 +120,7 @@ var createCustomBlocks = function () {
     return [code, Blockly.JavaScript.ORDER_FUNCTION_CALL];
   };
 
-
-//////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////
 
   /* Get Raw Data*/
   var getRawData = {
@@ -98,7 +143,6 @@ var createCustomBlocks = function () {
     return [code, Blockly.JavaScript.ORDER_FUNCTION_CALL];
   };
 
-
   //////////////////////////////////////////////////////////////////
 
   /* plot raw */
@@ -115,8 +159,8 @@ var createCustomBlocks = function () {
       },
     ],
     colour: 330,
-    "previousStatement": null,
-    "nextStatement": null,
+    previousStatement: null,
+    nextStatement: null,
   };
 
   Blockly.Blocks["plot_raw"] = {
@@ -139,11 +183,10 @@ var createCustomBlocks = function () {
       Blockly.JavaScript.ORDER_NONE
     );
 
-    seconds = seconds ? seconds : 0
+    seconds = seconds ? seconds : 0;
 
     return `plotRaw(${list}, ${seconds})\n`;
   };
-
 
   //////////////////////////////////////////////////////////////////
 
@@ -174,7 +217,6 @@ var createCustomBlocks = function () {
     return code;
   };
 
-
   //////////////////////////////////////////////////////////////////
 
   /* Print */
@@ -200,7 +242,6 @@ var createCustomBlocks = function () {
     );
     return `print(${msg});\n`;
   };
-
 
   //////////////////////////////////////////////////////////////////
 
@@ -232,7 +273,6 @@ var createCustomBlocks = function () {
     }
   };
   /******** setVelocityX *****/
-
 
   //////////////////////////////////////////////////////////////////
 
@@ -266,9 +306,7 @@ var createCustomBlocks = function () {
 
   /******** setVelocityY *****/
 
-
   //////////////////////////////////////////////////////////////////
-
 
   /******** setX *****/
   var setPlayerX = {

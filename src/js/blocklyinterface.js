@@ -46,24 +46,27 @@ export const BlocklyInterface = function () {
     //toolbox: document.getElementById("toolbox"),
   });
 
-
   // Create custom tool box to load when category selected
   let createCustomToolBox = (blocks) => {
-    let res = []
-    blocks.forEach(element => {
+    let res = [];
+    blocks.forEach((element) => {
       let block = unwind([element], true);
       block = Blockly.Xml.textToDom(block).firstChild;
-      res.push(block)
-    })
-    console.log(res)
-    return res
-  }
+      res.push(block);
+    });
+    //console.log(res);
+    return res;
+  };
 
   // Triggers everytime category opens
   window.workspace.registerToolboxCategoryCallback("DATA", (ws) => {
-
-    return createCustomToolBox(["plot_raw", "getRaw", "removeSignalMean", "getabsdata"])
-
+    return createCustomToolBox([
+      "plot_raw",
+      "getRaw",
+      "removeSignalMean",
+      "getabsdata",
+      "filter_signal",
+    ]);
   });
 
   /*
@@ -98,34 +101,44 @@ export const BlocklyInterface = function () {
     //this.runButton = ''
   };
 
-
   let formatList = (list) => {
-    return list.properties ? _.values(list.properties) : list
-  }
+    return list.properties ? _.values(list.properties) : list;
+  };
 
   // We need this to handle how to plot x-axis different based on wheter we are handlings user defined data or physio data
   // This is just a quick fix for now. When updated to support different types of data we will need to revisit this
   // Currently the plot functions checks to see if the list has a properties node. If so it assumes its user defined. Otherwise the x-axis is simply mapped to the value's index
   let formatListCallback = (list, processedData, cb) => {
-    if (list.properties){
-      list.properties = processedData
-      cb(list)  // returns here  
+    if (list.properties) {
+      list.properties = processedData;
+      cb(list); // returns here
     } else {
-      cb(processedData)
+      cb(processedData);
     }
-  }
-
+  };
 
   /////////////////////// BEGIN INTERPRETER SETUP ///////////////////////////////////////////
 
   // Add native to blockly here
   // This is too big now needs to be moved into its on module (TODO)
   window.initApi = function (interpreter, globalObject) {
-
-
     /* Get Filter */
+    var wrapper = async function (list, low, high, callback) {
+      try {
+        //console.log(list, low, high)
+        let arr = formatList(list);
+        let filteredData = await blocklyHooks.filterSignalHook(arr, low, high);
+        formatListCallback(list, filteredData, callback);
+      } catch (error) {
+        return error;
+      }
+    };
 
-
+    interpreter.setProperty(
+      globalObject,
+      "filterSignal",
+      interpreter.createAsyncFunction(wrapper)
+    );
 
     //////////////////////////////////////////////////////////////////
 
@@ -133,10 +146,9 @@ export const BlocklyInterface = function () {
 
     var wrapper = async function (list, callback) {
       try {
-
-        let arr = formatList(list)
-        let absData = await blocklyHooks.getAbsValueHook(arr)
-        formatListCallback(list, absData, callback)
+        let arr = formatList(list);
+        let absData = await blocklyHooks.getAbsValueHook(arr);
+        formatListCallback(list, absData, callback);
       } catch (error) {
         return error;
       }
@@ -148,22 +160,17 @@ export const BlocklyInterface = function () {
       interpreter.createAsyncFunction(wrapper)
     );
 
-
-
     //////////////////////////////////////////////////////////////////
-
-
-
 
     /* Remove Mean */
     // Example of using async functions with JS interpreter
     // See https://neil.fraser.name/software/JS-Interpreter/demos/async.html for example
     var wrapper = async function (list, callback) {
       try {
-        let arr = formatList(list)
-        let meanRemovedData = await blocklyHooks.removeMeanHook(arr)
-        formatListCallback(list, meanRemovedData, callback)
-        //callback(meanRemovedData)    // returns here    
+        let arr = formatList(list);
+        let meanRemovedData = await blocklyHooks.removeMeanHook(arr);
+        formatListCallback(list, meanRemovedData, callback);
+        //callback(meanRemovedData)    // returns here
       } catch (error) {
         return error;
       }
@@ -175,11 +182,7 @@ export const BlocklyInterface = function () {
       interpreter.createAsyncFunction(wrapper)
     );
 
-
-
     //////////////////////////////////////////////////////////////////
-
-
 
     // Get Raw
     // Not really sure if this matters.
@@ -220,7 +223,6 @@ export const BlocklyInterface = function () {
 
     //////////////////////////////////////////////////////////////////
 
-
     // Pan robot
     var wrapper = function (cmd) {
       window.pan(cmd);
@@ -249,9 +251,7 @@ export const BlocklyInterface = function () {
       interpreter.createNativeFunction(wrapper)
     );
 
-
     //////////////////////////////////////////////////////////////////
-
 
     // setVelocityX
     var wrapper = function (cmd, something) {
@@ -419,7 +419,6 @@ export const BlocklyInterface = function () {
       interpreter.createNativeFunction(wrapper)
     );
 
-
     //////////////////////////////////////////////////////////////////
 
     // Handle highlighting
@@ -442,16 +441,7 @@ export const BlocklyInterface = function () {
     initInterpreterWaitForSeconds(interpreter, globalObject);
   };
 
-
-
-
-
   ///////////////////////END INTERPRETER SETUP ///////////////////////////////////////////
-
-
-
-
-
 
   window.runBlocklyCode = function () {
     console.log("latest Code: ", window.latestCode);
@@ -515,3 +505,7 @@ window.runBlockCode = function () {
     setTimeout(window.runBlocklyCode, 1);
   }
 };
+
+
+
+
