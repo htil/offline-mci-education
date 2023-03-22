@@ -137,7 +137,7 @@ export const blocklyHooks = {
   },
 
   filterSignalHook: async (list, low, high) => {
-    //console.log(list, low, high)
+    console.log(list, low, high)
     let filteredData = await filterSignal(list, low, high);
     return filteredData;
   },
@@ -207,8 +207,8 @@ let filterSignal = async function (y, low, cutoff, updateGraph = false) {
 
   const filter = new fili.IirFilter(iirFilterCoeffs);
 
-  signalFiltered = await filter.simulate(y);
-  //console.log(signalFiltered);
+  let signalFiltered = await filter.simulate(y);
+  console.log(signalFiltered);
 
   /*
   if (updateGraph) {
